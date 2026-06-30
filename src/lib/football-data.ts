@@ -73,6 +73,16 @@ export function mapMatches(raw: { matches?: FDMatch[] }): MappedMatch[] {
   return out;
 }
 
+// Friendly message for a throttled response, using football-data.org's
+// `X-RequestCounter-Reset` header (seconds until the request counter resets).
+// Exported so it can be unit-tested without a network call.
+export function rateLimitMessage(resetSeconds: string | null): string {
+  const n = resetSeconds && /^\d+$/.test(resetSeconds) ? Number(resetSeconds) : null;
+  return n !== null
+    ? `football-data.org rate limit hit — try again in ${n}s.`
+    : "football-data.org rate limit hit — wait a minute and try again.";
+}
+
 export async function fetchKnockoutMatches(): Promise<MappedMatch[]> {
   const key = process.env.FOOTBALL_DATA_API_KEY;
   if (!key) throw new Error("FOOTBALL_DATA_API_KEY is not set");
@@ -81,6 +91,13 @@ export async function fetchKnockoutMatches(): Promise<MappedMatch[]> {
     headers: { "X-Auth-Token": key },
     cache: "no-store",
   });
+  // Free tier is ~10 req/min. We make one request per sync, but handle 429 gracefully so a
+  // throttled run reports when to retry (via X-RequestCounter-Reset) instead of a raw body.
+  // Note: a 200 may still carry X-RequestsAvailable: 0 (this was the last allowed call) — that
+  // is not an error, so we only branch on the 429 status.
+  if (res.status === 429) {
+    throw new Error(rateLimitMessage(res.headers.get("X-RequestCounter-Reset")));
+  }
   if (!res.ok) {
     const body = (await res.text()).slice(0, 200);
     throw new Error(`football-data.org ${res.status}: ${body}`);
