@@ -38,6 +38,7 @@ export default function AuthForms() {
             <input
               id="login-pin"
               name="pin"
+              type="password"
               className="input tracking-[0.5em]"
               inputMode="numeric"
               pattern="\d{4}"
@@ -63,6 +64,7 @@ export default function AuthForms() {
             <input
               id="join-pin"
               name="pin"
+              type="password"
               className="input tracking-[0.5em]"
               inputMode="numeric"
               pattern="\d{4}"
@@ -76,6 +78,7 @@ export default function AuthForms() {
             <input
               id="join-confirm"
               name="confirm"
+              type="password"
               className="input tracking-[0.5em]"
               inputMode="numeric"
               pattern="\d{4}"
