@@ -47,7 +47,7 @@ export default function PredictionForm({ matchId, teamA, teamB, currentQualifier
           id={`scorer-${matchId}`}
           name="scorerPick"
           defaultValue={currentScorer ?? ""}
-          placeholder="e.g. Osimhen"
+          placeholder="Surname only, max 1 (e.g. Osimhen)"
           autoComplete="off"
           className="input"
         />

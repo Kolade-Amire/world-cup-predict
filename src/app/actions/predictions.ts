@@ -25,6 +25,9 @@ export async function submitPrediction(_prev: PredictState, formData: FormData):
     return { error: "Qualifier must be one of the two teams." };
   }
   if (scorerPick.length > 40) return { error: "Player name is too long." };
+  if (/[,;/\n]| and | & /i.test(scorerPick)) {
+    return { error: "Pick just one player to score." };
+  }
 
   // confirm the player still exists (guards stale cookies)
   const player = await prisma.player.findUnique({ where: { id: playerId } });

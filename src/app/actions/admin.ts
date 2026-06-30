@@ -97,5 +97,5 @@ export async function setResult(_prev: AdminState, formData: FormData): Promise<
   revalidatePath("/");
   revalidatePath("/leaderboard");
   revalidatePath("/admin");
-  return { ok: `Saved result for ${match.code}.` };
+  return { ok: `Saved result for ${match.code ?? match.round}.` };
 }
