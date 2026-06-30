@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import { logout } from "./actions/auth";
 
 export const metadata: Metadata = {
-  title: "Knockout Predictor",
+  title: "2026 World Cup Knockout Predictor",
   description: "World Cup knockout prediction challenge",
 };
 
@@ -27,7 +27,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <header className="sticky top-0 z-10 border-b border-pitch-dark/30 bg-pitch text-white">
             <div className="flex items-center justify-between px-4 py-3">
               <Link href="/" className="flex items-center gap-2 font-extrabold tracking-tight">
-                <span aria-hidden>⚽</span> Knockout Predictor
+                <span aria-hidden>⚽</span>World Cup Knockout Predictor
               </Link>
               <nav className="flex items-center gap-3 text-sm font-semibold">
                 <Link href="/leaderboard" className="hover:underline">
