@@ -1,0 +1,18 @@
+name: Sync results
+
+# Vercel Hobby runs crons only once/day, so for live result updates during matches we use
+# GitHub Actions (free) to hit the same endpoint every ~10 min. Add repo secrets APP_URL
+# (e.g. https://your-app.vercel.app) and CRON_SECRET (same value as in Vercel).
+on:
+  schedule:
+    - cron: "*/10 * * * *" # GitHub may delay scheduled runs a few minutes; fine for results
+  workflow_dispatch: {} # allows manual runs from the Actions tab
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping sync endpoint
+        run: |
+          curl -fsS -X GET "${{ secrets.APP_URL }}/api/cron/sync" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

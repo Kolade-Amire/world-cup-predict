@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  nameKey     String       @unique // lowercased name, used for case-insensitive login
+  pinHash     String
+  createdAt   DateTime     @default(now())
+  predictions Prediction[]
+}
+
+model Match {
+  id          String       @id @default(cuid())
+  externalId  String?      @unique // football-data.org match id; null for manual rows
+  code        String?      @unique // e.g. R32-1, QF-2, FINAL; null for API-synced rows
+  round       String // Round of 32, Round of 16, Quarter-finals, Semi-finals, Third place, Final
+  order       Int          @default(0) // global display sort key (roundRank*100 + indexInRound)
+  teamA       String? // null until the bracket resolves
+  teamB       String?
+  kickoff     DateTime? // stored as UTC; null until scheduled
+  status      String       @default("SCHEDULED") // SCHEDULED | IN_PLAY | FINISHED
+  qualifier   String? // the team that advanced; null until decided
+  goals       Goal[]
+  predictions Prediction[]
+
+  @@index([kickoff])
+}
+
+model Goal {
+  id      String @id @default(cuid())
+  match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchId String
+  scorer  String // player name who scored (free text entered by admin)
+
+  @@index([matchId])
+}
+
+model Prediction {
+  id            String   @id @default(cuid())
+  player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  playerId      String
+  match         Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchId       String
+  qualifierPick String? // a team name (must equal Match.teamA or Match.teamB)
+  scorerPick    String? // a player name (free text)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([playerId, matchId])
+  @@index([matchId])
+}
