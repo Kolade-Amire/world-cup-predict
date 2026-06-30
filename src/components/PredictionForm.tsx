@@ -9,9 +9,10 @@ type Props = {
   teamB: string;
   currentQualifier: string | null;
   currentScorer: string | null;
+  squad: string[];
 };
 
-export default function PredictionForm({ matchId, teamA, teamB, currentQualifier, currentScorer }: Props) {
+export default function PredictionForm({ matchId, teamA, teamB, currentQualifier, currentScorer, squad }: Props) {
   const [state, action, pending] = useActionState<PredictState, FormData>(submitPrediction, {});
 
   return (
@@ -46,11 +47,19 @@ export default function PredictionForm({ matchId, teamA, teamB, currentQualifier
         <input
           id={`scorer-${matchId}`}
           name="scorerPick"
+          list={`scorer-list-${matchId}`}
           defaultValue={currentScorer ?? ""}
-          placeholder="Surname only, max 1 (e.g. Osimhen)"
+          placeholder={squad.length ? "Pick or type one player" : "One player (e.g. Osimhen)"}
           autoComplete="off"
           className="input"
         />
+        {squad.length > 0 && (
+          <datalist id={`scorer-list-${matchId}`}>
+            {squad.map((p) => (
+              <option key={p} value={p} />
+            ))}
+          </datalist>
+        )}
       </div>
 
       <div className="flex items-center gap-3">

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { syncFixtures } from "@/lib/sync";
+import { syncFixtures, syncSquads } from "@/lib/sync";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +18,8 @@ export async function GET(req: NextRequest) {
 
   try {
     const result = await syncFixtures();
-    return NextResponse.json({ ok: true, ...result });
+    const squads = await syncSquads();
+    return NextResponse.json({ ok: true, ...result, squads });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: e instanceof Error ? e.message : "error" },

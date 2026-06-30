@@ -42,6 +42,15 @@ model Goal {
   @@index([matchId])
 }
 
+model SquadPlayer {
+  id   String @id @default(cuid())
+  team String // exact team name as used in Match.teamA / teamB
+  name String // player full name
+
+  @@unique([team, name])
+  @@index([team])
+}
+
 model Prediction {
   id            String   @id @default(cuid())
   player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)

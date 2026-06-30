@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { isAdmin } from "@/lib/session";
 import { utcToWatInput } from "@/lib/time";
+import { getSquadsByTeam, squadFor } from "@/lib/squads";
 import { adminLogout } from "@/app/actions/admin";
 import AdminLoginForm from "@/components/AdminLoginForm";
 import AdminMatchEditor from "@/components/AdminMatchEditor";
@@ -23,6 +24,8 @@ export default async function AdminPage() {
     orderBy: { order: "asc" },
     include: { goals: true },
   });
+
+  const squadByTeam = await getSquadsByTeam();
 
   return (
     <div className="space-y-4">
@@ -58,6 +61,7 @@ export default async function AdminPage() {
           kickoffInput={m.kickoff ? utcToWatInput(m.kickoff) : ""}
           qualifier={m.qualifier}
           scorers={m.goals.map((g) => g.scorer).join("\n")}
+          squad={squadFor(squadByTeam, m.teamA, m.teamB)}
         />
       ))}
     </div>

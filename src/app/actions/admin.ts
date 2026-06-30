@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { isAdmin, setAdmin, clearAdmin } from "@/lib/session";
 import { watInputToUtc } from "@/lib/time";
-import { syncFixtures as runSync } from "@/lib/sync";
+import { syncFixtures as runSync, syncSquads as runSyncSquads } from "@/lib/sync";
 
 export type AdminState = { error?: string; ok?: string };
 
@@ -13,10 +13,11 @@ export async function syncFixtures(_prev: AdminState, _formData: FormData): Prom
   if (!(await isAdmin())) return { error: "Not authorized." };
   try {
     const { synced } = await runSync();
+    const { teams } = await runSyncSquads();
     revalidatePath("/");
     revalidatePath("/leaderboard");
     revalidatePath("/admin");
-    return { ok: `Synced ${synced} matches from the API.` };
+    return { ok: `Synced ${synced} matches + ${teams} squads from the API.` };
   } catch (e) {
     return { error: `Sync failed: ${e instanceof Error ? e.message : "unknown error"}` };
   }
@@ -83,10 +84,19 @@ export async function setResult(_prev: AdminState, formData: FormData): Promise<
     return { error: "Qualifier must be one of the two teams (or blank to clear)." };
   }
 
+  // split, trim, drop blanks, and de-dupe case-insensitively keeping the first spelling seen
+  // (a player only needs to appear once)
+  const seen = new Set<string>();
   const scorers = scorersRaw
     .split(/[\n,]/)
     .map((s) => s.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((s) => {
+      const key = s.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
   await prisma.$transaction([
     prisma.match.update({ where: { id: matchId }, data: { qualifier: qualifier || null } }),

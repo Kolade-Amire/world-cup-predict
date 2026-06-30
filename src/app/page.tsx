@@ -5,6 +5,7 @@ import { formatWat, isLocked } from "@/lib/time";
 import { qualifyPoints, scorerPoints } from "@/lib/scoring";
 import PredictionForm from "@/components/PredictionForm";
 import AutoRefresh from "@/components/AutoRefresh";
+import { getSquadsByTeam, squadFor } from "@/lib/squads";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,8 @@ export default async function HomePage() {
       predictions: { where: { playerId: playerId ?? "__none__" } },
     },
   });
+
+  const squadByTeam = await getSquadsByTeam();
 
   let lastRound = "";
 
@@ -73,6 +76,7 @@ export default async function HomePage() {
                   teamB={m.teamB!}
                   currentQualifier={pred?.qualifierPick ?? null}
                   currentScorer={pred?.scorerPick ?? null}
+                  squad={squadFor(squadByTeam, m.teamA, m.teamB)}
                 />
               )}
 

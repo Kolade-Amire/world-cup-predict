@@ -17,10 +17,10 @@ Stack: Next.js (App Router) · Prisma · PostgreSQL · Tailwind. Built to run on
 
 Two ways, and you can mix them:
 
-1. **Auto-sync (recommended).** In `/admin`, click **“Sync fixtures from API”**. It pulls teams, kickoff times (UTC → shown in WAT) and who advanced from [football-data.org](https://www.football-data.org). Matches already kicked off simply show as locked.
+1. **Auto-sync (recommended).** In `/admin`, click **“Sync fixtures from API”**. It pulls teams, kickoff times (UTC → shown in WAT), who advanced, **and team squads** from [football-data.org](https://www.football-data.org). Matches already kicked off simply show as locked.
 2. **Manual.** Edit any match in `/admin` (teams, kickoff in WAT). Run `npm run db:seed` once to lay out an empty 48-team bracket to fill in by hand.
 
-> Use **one** approach — if you'll auto-sync, don't also seed (the two create separate rows). **Goal scorers are always entered manually** in `/admin` (no reliable free scorer-event feed). Names are matched case- and accent-insensitively (`Mbappé` = `mbappe`); tell the group to use surnames.
+> Use **one** approach — if you'll auto-sync, don't also seed (the two create separate rows). **Goal scorers are always entered manually** in `/admin` (the API tier exposes squads but not scorer events). The scorer field — both when predicting and when you record results — is a **dropdown of the two teams' squads** (typed names still allowed as a fallback), so a prediction and the recorded scorer match exactly. Matching is also case/accent-insensitive (`Mbappé` = `mbappe`).
 
 If the free API tier doesn't cover this tournament, the manual flow runs the whole thing.
 

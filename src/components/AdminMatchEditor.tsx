@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { saveFixture, setResult, type AdminState } from "@/app/actions/admin";
 
 type Props = {
@@ -12,11 +12,23 @@ type Props = {
   kickoffInput: string; // pre-formatted datetime-local in WAT, or ""
   qualifier: string | null;
   scorers: string; // newline-joined
+  squad: string[];
 };
 
 export default function AdminMatchEditor(p: Props) {
   const [fxState, fxAction, fxPending] = useActionState<AdminState, FormData>(saveFixture, {});
   const [rsState, rsAction, rsPending] = useActionState<AdminState, FormData>(setResult, {});
+
+  const [scorers, setScorers] = useState<string[]>(
+    p.scorers.split("\n").map((s) => s.trim()).filter(Boolean)
+  );
+  const [draft, setDraft] = useState("");
+
+  const addScorer = () => {
+    const name = draft.trim();
+    if (name) setScorers((cur) => [...cur, name]);
+    setDraft("");
+  };
 
   return (
     <div className="card p-4">
@@ -59,8 +71,53 @@ export default function AdminMatchEditor(p: Props) {
           <input name="qualifier" defaultValue={p.qualifier ?? ""} className="input" placeholder="Team that advanced" />
         </div>
         <div>
-          <label className="label">Goal scorers (one per line, or comma-separated)</label>
-          <textarea name="scorers" defaultValue={p.scorers} rows={3} className="input" placeholder={"Osimhen\nLookman"} />
+          <label className="label">Goal scorers</label>
+          {/* chips carry the value; an un-added draft is folded in so nothing is lost on Save.
+              setResult splits this hidden field on newline/comma and de-dupes. */}
+          <input type="hidden" name="scorers" value={[...scorers, draft].map((s) => s.trim()).filter(Boolean).join("\n")} />
+          {scorers.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {scorers.map((name, i) => (
+                <span key={`${name}-${i}`} className="pill bg-pitch/15 text-pitch-dark">
+                  {name}
+                  <button
+                    type="button"
+                    onClick={() => setScorers((cur) => cur.filter((_, j) => j !== i))}
+                    className="ml-1 text-pitch-dark/60 hover:text-pitch-dark"
+                    aria-label={`Remove ${name}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addScorer();
+                }
+              }}
+              list={`adm-squad-${p.id}`}
+              placeholder={p.squad.length ? "Pick or type a scorer" : "Type a scorer"}
+              autoComplete="off"
+              className="input"
+            />
+            <button type="button" onClick={addScorer} className="btn-ghost shrink-0">
+              Add
+            </button>
+          </div>
+          {p.squad.length > 0 && (
+            <datalist id={`adm-squad-${p.id}`}>
+              {p.squad.map((name) => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <button type="submit" className="btn-primary" disabled={rsPending}>

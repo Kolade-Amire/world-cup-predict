@@ -105,3 +105,39 @@ export async function fetchKnockoutMatches(): Promise<MappedMatch[]> {
   const data = (await res.json()) as { matches?: FDMatch[] };
   return mapMatches(data);
 }
+
+type FDTeam = { name: string | null; squad?: { name: string | null }[] | null };
+
+export type TeamSquad = { team: string; players: string[] };
+
+// Pure mapper, exported for unit testing without a network call.
+export function mapSquads(raw: { teams?: FDTeam[] }): TeamSquad[] {
+  const out: TeamSquad[] = [];
+  for (const t of raw.teams ?? []) {
+    if (!t.name) continue;
+    const players = (t.squad ?? [])
+      .map((p) => (p.name ?? "").trim())
+      .filter(Boolean);
+    if (players.length) out.push({ team: t.name, players });
+  }
+  return out;
+}
+
+export async function fetchSquads(): Promise<TeamSquad[]> {
+  const key = process.env.FOOTBALL_DATA_API_KEY;
+  if (!key) throw new Error("FOOTBALL_DATA_API_KEY is not set");
+
+  const res = await fetch(`${BASE}/competitions/${COMPETITION}/teams`, {
+    headers: { "X-Auth-Token": key },
+    cache: "no-store",
+  });
+  if (res.status === 429) {
+    throw new Error(rateLimitMessage(res.headers.get("X-RequestCounter-Reset")));
+  }
+  if (!res.ok) {
+    const body = (await res.text()).slice(0, 200);
+    throw new Error(`football-data.org ${res.status}: ${body}`);
+  }
+  const data = (await res.json()) as { teams?: FDTeam[] };
+  return mapSquads(data);
+}

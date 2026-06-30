@@ -1,6 +1,6 @@
 import "server-only";
 import { prisma } from "./db";
-import { fetchKnockoutMatches } from "./football-data";
+import { fetchKnockoutMatches, fetchSquads } from "./football-data";
 import { ROUND_ORDER, globalOrder } from "./rounds";
 
 // Pull knockout fixtures/results from football-data.org and upsert them by externalId.
@@ -45,4 +45,22 @@ export async function syncFixtures(): Promise<{ synced: number }> {
   }
 
   return { synced: matches.length };
+}
+
+// Pull team squads from football-data.org and store them for the scorer dropdowns.
+// Each team's rows are replaced wholesale so roster changes are reflected.
+export async function syncSquads(): Promise<{ teams: number; players: number }> {
+  const squads = await fetchSquads();
+  let players = 0;
+  for (const { team, players: names } of squads) {
+    players += names.length;
+    await prisma.$transaction([
+      prisma.squadPlayer.deleteMany({ where: { team } }),
+      prisma.squadPlayer.createMany({
+        data: names.map((name) => ({ team, name })),
+        skipDuplicates: true,
+      }),
+    ]);
+  }
+  return { teams: squads.length, players };
 }
