@@ -5,7 +5,12 @@ import "server-only";
 const BASE = "https://apiv3.apifootball.com";
 const WORLD_CUP_LEAGUE_ID = "28";
 
-type FDGoal = { home_scorer?: string; away_scorer?: string };
+type FDGoal = { home_scorer?: string; away_scorer?: string; score_info_time?: string };
+
+// Strip a trailing "(pen.)" / "(o.g.)" annotation so names stay clean for matching/display.
+function cleanScorer(name: string): string {
+  return name.replace(/\s*\((?:pen\.?|o\.?g\.?)\)\s*$/i, "").trim();
+}
 type FDEvent = {
   match_hometeam_name?: string;
   match_awayteam_name?: string;
@@ -25,8 +30,12 @@ export function mapGoals(raw: unknown): EventGoals[] {
     if (!home || !away) continue;
     const scorers: string[] = [];
     for (const g of e.goalscorer ?? []) {
-      const h = (g.home_scorer ?? "").trim();
-      const a = (g.away_scorer ?? "").trim();
+      // Skip penalty-shootout kicks (marked score_info_time="Penalty"); real goals are
+      // "1st Half"/"2nd Half"/"Extra Time". An in-play penalty is kept (its score_info_time
+      // is a half, not "Penalty").
+      if ((g.score_info_time ?? "").trim().toLowerCase() === "penalty") continue;
+      const h = cleanScorer((g.home_scorer ?? "").trim());
+      const a = cleanScorer((g.away_scorer ?? "").trim());
       if (h) scorers.push(h);
       if (a) scorers.push(a);
     }
