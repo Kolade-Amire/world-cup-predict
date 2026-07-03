@@ -5,11 +5,18 @@ import "server-only";
 const BASE = "https://apiv3.apifootball.com";
 const WORLD_CUP_LEAGUE_ID = "28";
 
-type FDGoal = { home_scorer?: string; away_scorer?: string; score_info_time?: string };
+type FDGoal = { home_scorer?: string; away_scorer?: string; score_info_time?: string; info?: string };
 
 // Strip a trailing "(pen.)" / "(o.g.)" annotation so names stay clean for matching/display.
 function cleanScorer(name: string): string {
   return name.replace(/\s*\((?:pen\.?|o\.?g\.?)\)\s*$/i, "").trim();
+}
+
+// Own goals don't count as the player "scoring" for prediction purposes. apifootball flags them
+// via info="Own Goal" and/or an "(o.g.)" suffix on the name. The parenthesized suffix check
+// avoids false positives on real names containing "og" (e.g. "Balogun").
+function isOwnGoal(rawName: string, info: string): boolean {
+  return /own/i.test(info) || /\(\s*o\.?\s*g\.?\s*\)\s*$/i.test(rawName);
 }
 type FDEvent = {
   match_hometeam_name?: string;
@@ -34,10 +41,11 @@ export function mapGoals(raw: unknown): EventGoals[] {
       // "1st Half"/"2nd Half"/"Extra Time". An in-play penalty is kept (its score_info_time
       // is a half, not "Penalty").
       if ((g.score_info_time ?? "").trim().toLowerCase() === "penalty") continue;
-      const h = cleanScorer((g.home_scorer ?? "").trim());
-      const a = cleanScorer((g.away_scorer ?? "").trim());
-      if (h) scorers.push(h);
-      if (a) scorers.push(a);
+      const info = g.info ?? "";
+      const h = (g.home_scorer ?? "").trim();
+      const a = (g.away_scorer ?? "").trim();
+      if (h && !isOwnGoal(h, info)) scorers.push(cleanScorer(h));
+      if (a && !isOwnGoal(a, info)) scorers.push(cleanScorer(a));
     }
     out.push({ home, away, date: (e.match_date ?? "").trim(), scorers });
   }
