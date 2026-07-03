@@ -72,6 +72,9 @@ export default function AdminMatchEditor(p: Props) {
         </div>
         <div>
           <label className="label">Goal scorers</label>
+          <p className="mb-1 text-xs text-gray-400">
+            Auto-filled from the API. Saving scorers here locks the match — auto-sync won’t override.
+          </p>
           {/* chips carry the value; an un-added draft is folded in so nothing is lost on Save.
               setResult splits this hidden field on newline/comma and de-dupes. */}
           <input type="hidden" name="scorers" value={[...scorers, draft].map((s) => s.trim()).filter(Boolean).join("\n")} />

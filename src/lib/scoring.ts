@@ -19,13 +19,22 @@ function nameTokens(name: string | null | undefined): string[] {
   return normalizeName(name).split(" ").filter(Boolean);
 }
 
-// Two names match if one's word set is a subset of the other's. This reconciles surname-only
-// predictions ("Osimhen") with full-name recorded scorers ("Victor Osimhen") and vice versa,
-// regardless of word order — so picks made before the squad dropdown existed still count.
+// Decide if a predicted name and a recorded scorer name refer to the same player, across the
+// different formats in play: surname-only ("Osimhen"), full name from the squad dropdown
+// ("Victor Osimhen"), and initial+surname from apifootball ("V. Osimhen"). Two rules, OR'd:
+//   1. surname (last token) matches — the reliable anchor that bridges "Amad Diallo" vs "A. Diallo"
+//   2. one name's whole word-set is a subset of the other's (handles word-order + multi-word names)
+// Trade-off: two players sharing a surname in the same match can't be told apart from a bare
+// surname — accepted (rare, and predictions are surname-led anyway).
 export function scorerMatches(pick: string | null | undefined, scorer: string | null | undefined): boolean {
   const a = nameTokens(pick);
   const b = nameTokens(scorer);
   if (!a.length || !b.length) return false;
+
+  const surnameA = a[a.length - 1];
+  const surnameB = b[b.length - 1];
+  if (surnameA.length >= 2 && surnameA === surnameB) return true; // ignore lone initials like "a."
+
   const [small, big] = a.length <= b.length ? [a, new Set(b)] : [b, new Set(a)];
   return small.every((t) => big.has(t));
 }

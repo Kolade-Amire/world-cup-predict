@@ -24,11 +24,12 @@ model Match {
   order       Int          @default(0) // global display sort key (roundRank*100 + indexInRound)
   teamA       String? // null until the bracket resolves
   teamB       String?
-  kickoff     DateTime? // stored as UTC; null until scheduled
-  status      String       @default("SCHEDULED") // SCHEDULED | IN_PLAY | FINISHED
-  qualifier   String? // the team that advanced; null until decided
-  goals       Goal[]
-  predictions Prediction[]
+  kickoff       DateTime? // stored as UTC; null until scheduled
+  status        String       @default("SCHEDULED") // SCHEDULED | IN_PLAY | FINISHED
+  qualifier     String? // the team that advanced; null until decided
+  scorersManual Boolean      @default(false) // true once admin enters scorers; blocks auto goal sync
+  goals         Goal[]
+  predictions   Prediction[]
 
   @@index([kickoff])
 }

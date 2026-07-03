@@ -20,7 +20,9 @@ Two ways, and you can mix them:
 1. **Auto-sync (recommended).** In `/admin`, click **“Sync fixtures from API”**. It pulls teams, kickoff times (UTC → shown in WAT), who advanced, **and team squads** from [football-data.org](https://www.football-data.org). Matches already kicked off simply show as locked.
 2. **Manual.** Edit any match in `/admin` (teams, kickoff in WAT). Run `npm run db:seed` once to lay out an empty 48-team bracket to fill in by hand.
 
-> Use **one** approach — if you'll auto-sync, don't also seed (the two create separate rows). **Goal scorers are always entered manually** in `/admin` (the API tier exposes squads but not scorer events). The scorer field — both when predicting and when you record results — is a **dropdown of the two teams' squads** (typed names still allowed as a fallback), so a prediction and the recorded scorer match exactly. Matching is also case/accent-insensitive (`Mbappé` = `mbappe`).
+> Use **one** approach — if you'll auto-sync, don't also seed (the two create separate rows).
+>
+> **Goal scorers** are auto-filled from a second provider, **apifootball.com** (World Cup = `league_id 28`), because football-data.org's tier exposes squads but not scorer events. The **Sync** button fetches fixtures/squads (football-data) *and* goal scorers (apifootball), matching scorers onto matches by team + date. You can still enter/adjust scorers by hand in `/admin` — **manual entry wins**: once you save scorers for a match, auto-sync leaves it alone (clear them to hand control back). The scorer field (predicting *and* recording) is a **dropdown of the two teams' squads** with a free-text fallback; matching is token- and accent-insensitive (`Osimhen` = `Victor Osimhen` = `mbappe`).
 
 If the free API tier doesn't cover this tournament, the manual flow runs the whole thing.
 
@@ -70,6 +72,7 @@ npm run db:seed         # lays out the empty 48-team bracket
    | `SESSION_SECRET` | long random string — `openssl rand -base64 32` |
    | `ADMIN_PASSWORD` | the password to manage fixtures/results |
    | `FOOTBALL_DATA_API_KEY` | your football-data.org token |
+   | `APIFOOTBALL_API_KEY` | your apifootball.com key (auto goal scorers) |
    | `CRON_SECRET` | long random string — `openssl rand -base64 32` |
 3. **Deploy.**
 
@@ -83,7 +86,7 @@ npm run db:seed         # lays out the empty 48-team bracket
 
 ## Local development
 ```bash
-cp .env.example .env     # fill in DATABASE_URL, SESSION_SECRET, ADMIN_PASSWORD, FOOTBALL_DATA_API_KEY
+cp .env.example .env     # fill in DATABASE_URL, SESSION_SECRET, ADMIN_PASSWORD, FOOTBALL_DATA_API_KEY, APIFOOTBALL_API_KEY
 npm install
 npx prisma db push
 npm run dev              # http://localhost:3000

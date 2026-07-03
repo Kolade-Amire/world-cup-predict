@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { isAdmin, setAdmin, clearAdmin } from "@/lib/session";
 import { watInputToUtc } from "@/lib/time";
-import { syncFixtures as runSync, syncSquads as runSyncSquads } from "@/lib/sync";
+import { syncFixtures as runSync, syncSquads as runSyncSquads, syncGoals as runSyncGoals } from "@/lib/sync";
 
 export type AdminState = { error?: string; ok?: string };
 
@@ -14,10 +14,11 @@ export async function syncFixtures(_prev: AdminState, _formData: FormData): Prom
   try {
     const { synced } = await runSync();
     const { teams } = await runSyncSquads();
+    const { matched } = await runSyncGoals();
     revalidatePath("/");
     revalidatePath("/leaderboard");
     revalidatePath("/admin");
-    return { ok: `Synced ${synced} matches + ${teams} squads from the API.` };
+    return { ok: `Synced ${synced} matches + ${teams} squads + scorers for ${matched} matches.` };
   } catch (e) {
     return { error: `Sync failed: ${e instanceof Error ? e.message : "unknown error"}` };
   }
@@ -99,7 +100,12 @@ export async function setResult(_prev: AdminState, formData: FormData): Promise<
     });
 
   await prisma.$transaction([
-    prisma.match.update({ where: { id: matchId }, data: { qualifier: qualifier || null } }),
+    // entering scorers locks the match so the apifootball auto-sync won't overwrite them;
+    // clearing them unlocks it so auto can resume
+    prisma.match.update({
+      where: { id: matchId },
+      data: { qualifier: qualifier || null, scorersManual: scorers.length > 0 },
+    }),
     prisma.goal.deleteMany({ where: { matchId } }),
     ...(scorers.length ? [prisma.goal.createMany({ data: scorers.map((scorer) => ({ matchId, scorer })) })] : []),
   ]);
