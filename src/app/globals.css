@@ -3,37 +3,77 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
-  @apply bg-gray-50 text-gray-900 antialiased;
+  @apply bg-pitch-deep text-gray-100 antialiased relative min-h-screen overflow-x-hidden;
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(22, 163, 74, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(11, 110, 59, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(6, 77, 41, 0.15) 0%, transparent 100%);
 }
 
 .card {
-  @apply rounded-2xl border border-gray-200 bg-white shadow-sm;
+  @apply rounded-2xl border border-pitch-border/60 bg-pitch-card/80 shadow-xl shadow-black/35 transition-all duration-300 hover:border-pitch-border/80;
 }
 
 .btn {
-  @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-50;
+  @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
 }
 
 .btn-primary {
-  @apply btn bg-pitch text-white hover:bg-pitch-dark;
+  @apply btn bg-gradient-to-r from-pitch-light to-pitch text-white hover:shadow-lg hover:shadow-pitch/20 hover:brightness-110 active:brightness-95;
 }
 
 .btn-ghost {
-  @apply btn border border-gray-300 bg-white text-gray-700 hover:bg-gray-50;
+  @apply btn border border-pitch-border/80 bg-pitch-deep/50 text-gray-300 hover:bg-pitch-border/40 hover:text-white;
 }
 
 .input {
-  @apply w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base outline-none focus:border-pitch focus:ring-2 focus:ring-pitch/30;
+  @apply w-full rounded-xl border border-pitch-border bg-pitch-deep/80 px-3 py-2.5 text-base text-white outline-none focus:border-pitch-light focus:ring-2 focus:ring-pitch-light/20 transition-all placeholder:text-gray-500;
 }
 
 .label {
-  @apply mb-1 block text-sm font-medium text-gray-700;
+  @apply mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-400;
 }
 
 .pill {
-  @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide;
+}
+
+/* Custom styling for list suggestions and auto-complete dropdown lists */
+datalist {
+  background-color: #0c2217;
+  color: white;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #07150e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #163e2a;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #16a34a;
+}
+
+/* Hide scrollbar for Chrome, Safari, and Opera */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge, and Firefox */
+.scrollbar-none {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }

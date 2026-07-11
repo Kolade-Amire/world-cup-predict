@@ -9,8 +9,8 @@ export default async function LoginPage() {
   return (
     <div className="space-y-4">
       <div className="px-1">
-        <h1 className="text-xl font-extrabold">Join the challenge</h1>
-        <p className="text-sm text-gray-500">Pick a name and a 4-digit PIN. That’s your login.</p>
+        <h1 className="text-xl font-extrabold text-white">Join the challenge</h1>
+        <p className="text-sm text-gray-400">Pick a name and a 4-digit PIN. That’s your login.</p>
       </div>
       <AuthForms />
     </div>
