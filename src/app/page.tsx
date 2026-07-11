@@ -4,6 +4,7 @@ import { getSessionPlayerId } from "@/lib/session";
 import { formatWat, isLocked } from "@/lib/time";
 import { qualifyPoints, scorerPoints } from "@/lib/scoring";
 import PredictionForm from "@/components/PredictionForm";
+import CountryFlag from "@/components/CountryFlag";
 import AutoRefresh from "@/components/AutoRefresh";
 import { getSquadsByTeam, squadFor } from "@/lib/squads";
 import { roundRank } from "@/lib/rounds";
@@ -13,86 +14,6 @@ export const dynamic = "force-dynamic";
 type PageProps = {
   searchParams: Promise<{ round?: string }>;
 };
-
-// Colored avatar generator for country teams
-function getCountryAvatar(name: string | null | undefined) {
-  if (!name) {
-    return { 
-      initials: "TBD", 
-      gradient: "from-neutral-800 to-neutral-900 text-neutral-500 border border-pitch-border/30" 
-    };
-  }
-  
-  const cleanName = name.replace(/[^a-zA-Z\s]/g, "").trim();
-  const words = cleanName.split(/\s+/).filter(Boolean);
-  let initials = "";
-  if (words.length >= 2) {
-    initials = (words[0][0] + words[1][0]).toUpperCase();
-  } else if (words.length === 1 && words[0].length >= 2) {
-    initials = words[0].slice(0, 2).toUpperCase();
-  } else {
-    initials = name.slice(0, 2).toUpperCase();
-  }
-
-  // Curated country gradients based on national colors
-  const gradients: Record<string, string> = {
-    NIGERIA: "from-emerald-600 to-green-800 text-white",
-    BRAZIL: "from-yellow-400 to-yellow-600 text-yellow-950",
-    ARGENTINA: "from-sky-400 to-blue-500 text-white",
-    ENGLAND: "from-red-500 to-blue-700 text-white",
-    FRANCE: "from-blue-600 to-blue-900 text-white",
-    GERMANY: "from-neutral-800 to-neutral-600 text-white",
-    SPAIN: "from-red-600 to-yellow-500 text-white",
-    ITALY: "from-blue-500 to-blue-800 text-white",
-    PORTUGAL: "from-red-700 to-green-700 text-white",
-    MOROCCO: "from-red-600 to-green-800 text-white",
-    JAPAN: "from-blue-800 to-red-600 text-white",
-    USA: "from-blue-600 via-red-500 to-white text-blue-950",
-    "UNITED STATES": "from-blue-600 via-red-500 to-white text-blue-950",
-    NETHERLANDS: "from-orange-500 to-orange-700 text-white",
-    BELGIUM: "from-red-600 via-yellow-500 to-neutral-800 text-white",
-    CROATIA: "from-red-600 to-blue-600 text-white",
-    SENEGAL: "from-green-600 via-yellow-500 to-red-600 text-white",
-    CAMEROON: "from-green-700 via-red-600 to-yellow-500 text-white",
-    GHANA: "from-red-600 via-yellow-500 to-green-600 text-white",
-    URUGUAY: "from-sky-400 to-white text-sky-950",
-    MEXICO: "from-green-700 via-white to-red-600 text-green-950",
-    CANADA: "from-red-600 to-white text-red-950",
-    TUNISIA: "from-red-600 to-red-800 text-white",
-  };
-
-  const key = cleanName.toUpperCase();
-  let gradient = gradients[key];
-  if (!gradient) {
-    const fallbackGradients = [
-      "from-pink-600 to-rose-800 text-white",
-      "from-purple-600 to-indigo-800 text-white",
-      "from-blue-600 to-sky-800 text-white",
-      "from-cyan-600 to-teal-800 text-white",
-      "from-emerald-600 to-green-800 text-white",
-      "from-yellow-500 to-amber-700 text-yellow-950",
-      "from-orange-500 to-red-700 text-white",
-      "from-fuchsia-600 to-purple-800 text-white",
-    ];
-    let hash = 0;
-    for (let i = 0; i < key.length; i++) {
-      hash = key.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const idx = Math.abs(hash % fallbackGradients.length);
-    gradient = fallbackGradients[idx];
-  }
-
-  return { initials, gradient };
-}
-
-function CountryAvatar({ name, className = "" }: { name: string | null | undefined; className?: string }) {
-  const { initials, gradient } = getCountryAvatar(name);
-  return (
-    <span className={`inline-flex items-center justify-center font-black rounded-xl shadow-md select-none shrink-0 border border-white/10 ${gradient} ${className}`}>
-      {initials}
-    </span>
-  );
-}
 
 export default async function HomePage({ searchParams }: PageProps) {
   const playerId = await getSessionPlayerId();
@@ -212,7 +133,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                           <span className="inline-block text-[9px] uppercase font-bold text-gold tracking-widest mt-0.5">Qualified</span>
                         )}
                       </div>
-                      <CountryAvatar name={m.teamA} className="h-8 w-8 md:h-9 md:w-9 text-[10px] md:text-xs" />
+                      <CountryFlag name={m.teamA} variant="badge" />
                     </div>
 
                     <div className="flex flex-col items-center justify-center">
@@ -222,7 +143,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                     </div>
 
                     <div className="col-span-2 flex items-center justify-start gap-2.5">
-                      <CountryAvatar name={m.teamB} className="h-8 w-8 md:h-9 md:w-9 text-[10px] md:text-xs" />
+                      <CountryFlag name={m.teamB} variant="badge" />
                       <div className="text-left">
                         <div className={`text-sm md:text-base font-extrabold transition-colors ${
                           settled && m.qualifier === m.teamB ? "text-gold" : "text-white"
